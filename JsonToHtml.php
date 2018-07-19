@@ -77,7 +77,7 @@ class JsonToHtml
         $this->html .= '<h2>'.$value->title.'</h2>';
         for($i = 0; $i <count($value->questions); $i++) {
             $this->html .= '<div class="'.Choice.$i.'">';
-            $this->html .= '<h4>'.$value->questions[$i]->title.'</h4>';
+            $this->html .= '<p>'.$value->questions[$i]->title.'</p>';
             for($j = 0; $j < count($value->questions[$i]->options);$j++) {
                 $this->html .= '<p>'.$value->questions[$i]->options[$j].'</p>';
             }
@@ -90,7 +90,7 @@ class JsonToHtml
         $this->html .= '<div class="Judge">';
         $this->html .= '<h2>'.$value->title.'</h2>';
         for($i = 0; $i < count($value->questions); $i++) {
-            $this->html .= '<h4>'.$value->questions[$i].'</h4>';
+            $this->html .= '<p>'.$value->questions[$i].'</p>';
         }
         $this->html .= '</div>';
     }
@@ -99,7 +99,7 @@ class JsonToHtml
         $this->html .= '<div class="Brief">';
         $this->html .= '<h2>'.$value->title.'</h2>';
         for($i = 0; $i < count($value->questions); $i++) {
-            $this->html .= '<h4>'.$value->questions[$i].'</h4>';
+            $this->html .= '<p>'.$value->questions[$i].'</p>';
         }
         $this->html .= '</div>';
 
@@ -118,7 +118,7 @@ class JsonToHtml
         $this->html .= '<div class="Pack">';
         $this->html .= '<h2>'.$value->title.'</h2>';
         for($i = 0; $i < count($value->questions); $i++) {
-            $this->html .= '<h4>'.$value->questions[$i].'</h4>';
+            $this->html .= '<p>'.$value->questions[$i].'</p>';
         }
         $this->html .= '</div>';
     }

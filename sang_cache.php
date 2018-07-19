@@ -1,13 +1,16 @@
 <?php
 
+define('DS') || define('DS',DIRECTORY_SEPARATOR);
+
 function __autoload($className) {
-	require_once __DIR__.DIRECTORY_SEPARATOR.$className.'.php';
+	require_once __DIR__.DS.$className.'.php';
 }
+
 
 
 $rt = new Word2Json();
 
-$fileName = __DIR__.DIRECTORY_SEPARATOR.'b'.DIRECTORY_SEPARATOR.'test.docx';
+$fileName = __DIR__.DS.'b'.DS.'test.docx';
 $res = $rt->readDocument($fileName);
 $json2html = new JsonToHtml($res);
 
@@ -16,6 +19,10 @@ class Word2Json
 	private $rels_xml;
 	private $doc_xml;
 	
+
+	/**
+	 * 判断并将word转换为xml
+	 */
 	private function readZipPart($filename) {
 		$zip = new ZipArchive();
 		$_xml = 'word/document.xml';
@@ -55,7 +62,7 @@ class Word2Json
 	 * 调用外部程序进行预处理替换原文档
 	 */
 	private function preprocessingWord($filename) {
-		$fileDir = __DIR__.DIRECTORY_SEPARATOR.'docx'.DIRECTORY_SEPARATOR.'aaa'.DIRECTORY_SEPARATOR;
+		$fileDir = __DIR__.DS.'docx'.DS.'aaa'.DS;
 		$exeName = 'WordProcessing.exe';
 		$shell =  $exeName." $filename $fileDir";
 		$a = exec($shell,$output,$return_val);
@@ -77,6 +84,10 @@ class Word2Json
 		return $ret;
 	}
 	
+
+	/**
+	 * 处理文档中的链接
+	 */
 	private function getHyperlink(&$xml) {
 		$ret = array('open'=>'<ul>','close'=>'</ul>');
 		$link ='';
@@ -107,6 +118,8 @@ class Word2Json
 		return $ret;
 	}
 	
+
+	//主要实现
 	public function readDocument($filename) {
 		$this->readZipPart($filename);
 		$reader = new XMLReader();
@@ -176,9 +189,6 @@ class Word2Json
 					else if($paragraph->nodeType == XMLREADER::ELEMENT && $paragraph->name === 'w:t') { //list
 						$list_format = $this->getListFormating($paragraph);
 					}
-					 if($paragraph->nodeType == XMLREADER::ELEMENT && $paragraph->name === 'w:drawing') { //images
-
-					}
 					else if ($paragraph->nodeType == XMLREADER::ELEMENT && $paragraph->name === 'w:hyperlink') {
 						$hyperlink = $this->getHyperlink($paragraph);
 						$text .= $hyperlink['open'];
@@ -240,23 +250,42 @@ class Word2Json
         return $this->division($s);
 	}
 
+
+	/**
+	 * 获取图片索引值
+	 */
 	private function analysisDrawing(&$drawingXml) {
-		while($drawingXml->read()) {
-			if ($drawingXml->nodeType == XMLREADER::ELEMENT && $drawingXml->name === 'a:blip') {
-				$rId = $drawingXml->getAttribute('r:embed');
-				$rIdIndex = substr($rId,3);
-				return $this->checkImageFormating($rIdIndex);
-			}
-		}
+		$rIdIndex = '';
+		$distArr = [];
+		$slideSizeArr = [];
+		while($drawingXml->read())
+			if($drawingXml->nodeType == XMLREADER::ELEMENT) 
+				switch($drawingXml->name)
+				{
+					case 'wp:inline' : 
+						$distName = ['distT', 'distB', 'distL', 'distR'];
+						foreach ($distName as $dist)
+							$distArr[$dist] = (!is_numeric($drawingXml->getAttribute($dist))) ? :$this->emuToPx(intval($drawingXml->getAttribute($dist)));
+						break;
+					case 'wp:extent' :
+						$slideSizeArr['cx'] = (!is_numeric($drawingXml->getAttribute('cx'))) ? :$this->emuToPx(intval($drawingXml->getAttribute('cx')));
+						$slideSizeArr['cy'] = (!is_numeric($drawingXml->getAttribute('cy'))) ? :$this->emuToPx(intval($drawingXml->getAttribute('cy')));
+						break;
+					case 'a:blip' : 
+						$rId = $drawingXml->getAttribute('r:embed');
+						$rIdIndex = substr($rId,3);
+						return $this->checkImageFormating($rIdIndex, $distArr, $slideSizeArr);
+						break;
+				}
 	}
 
 	/**
-	 * 不解压的情况下直接显示压缩包中的图片文件
+	 * 找到并读取图片流，转化为base64格式进行拼接显示图片
 	 */
-	private function checkImageFormating($rIdIndex) {
+	private function checkImageFormating($rIdIndex, $distArr = [], $slideSizeArr = []) {
 
 		$imgname = 'word/media/image'.($rIdIndex-8);
-		$zipfileName =  __DIR__.DIRECTORY_SEPARATOR.'b'.DIRECTORY_SEPARATOR.'test.docx';
+		$zipfileName =  __DIR__.DS.'b'.DS.'test.docx';
 		$zip=zip_open($zipfileName);
 		while($zip_entry = zip_read($zip)) {//读依次读取包中的文件
 			$file_name=zip_entry_name($zip_entry);//获取zip中的文件名
@@ -266,7 +295,8 @@ class Word2Json
 				if ($enter_zp = zip_entry_open($zip, $zip_entry, "r")) {  //读取包中文件
 					$ext = pathinfo(zip_entry_name ($zip_entry),PATHINFO_EXTENSION);//获取图片文件扩展名
 					$content = zip_entry_read($zip_entry,zip_entry_filesize($zip_entry));//读取文件二进制数据
-					return sprintf('<img src="data:image/%s;base64,%s">', $ext, base64_encode($content));//利用base64_encode函数转换读取到的二进制数据并输入输出到页面中
+					// return sprintf('<img src="data:image/%s;base64,%s" style="'.'width:'.$slideSizeArr['cx'].';height:'.$slideSizeArr['cy'].';">', $ext, base64_encode($content));//利用base64_encode函数转换读取到的二进制数据并输入输出到页面中
+					return sprintf('<img src="data:image/%s;base64,%s" style="width:%s;height:%s;margin-top:%s;margin-bottom:%s;margin-left:%s;margin-right:%s">', $ext, base64_encode($content), ...array_values($slideSizeArr), ...array_values($distArr));//利用base64_encode函数转换读取到的二进制数据并输入输出到页面中
 				}
 				zip_entry_close($zip_entry); //关闭zip中打开的项目 
 			}
@@ -332,6 +362,10 @@ class Word2Json
 		return $res;
 	}
 	
+
+	/**
+	 * 分割选择题选项
+	 */
 	public function setSelection(&$arr = []) {
 		$titNam = '选择';
 		$option = ['A','B','C','D'];
@@ -377,5 +411,22 @@ class Word2Json
 			$arr3[$i-1] = $str;
 		}
 		return ['new' => $arr2,'old' => $arr3];
+	}
+
+
+
+	/**
+	 *  英语公制单位转磅
+	 * Emu  ->  pt
+	 */
+	private function emuToPx($emu = 0) {
+		$e = 914400;
+		$pt = 72;
+		return  round(($emu / $e) * $pt, 1) . 'pt';
+	}
+
+
+	public function echos($a,$b,$c) {
+		echo $a.'#'.$b.'#'.$c;
 	}
 }
