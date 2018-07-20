@@ -149,6 +149,15 @@ class Word2Json
 						while($paragraph->read()) {
 							if($paragraph->nodeType == XMLReader::ELEMENT) { 
 								$ts = str_replace(array("\r\n", "\r", "\n"," "),'',$this->checkFormating($paragraph));
+								if(($paragraph->name === 'w:r') 
+								&& (mb_strpos($paragraph->readOuterXml(),'<w:u w:val="single"/>') >-1) 
+								&& (mb_strpos($paragraph->readOuterXml(),'<w:t xml:space="preserve">') > -1)) {
+									$underlineLength = mb_strpos($paragraph->readOuterXml(),'</w:t>') - (mb_strpos($paragraph->readOuterXml(),'<w:t xml:space="preserve">') + strlen('<w:t xml:space="preserve">'));
+									$t .= $this->test($underlineLength);
+								}
+								
+
+
 								if($ts == '' && $paragraph->name != 'w:drawing') continue;
 								if($paragraph->name === 'w:drawing') {
 									(strstr($ts,'…封…') != false || strstr($ts,'…线…') != false) ? $t .= '' : $t .= $this->analysisDrawing($paragraph);
@@ -240,13 +249,11 @@ class Word2Json
 		}
 		$reader->close();
 		$reArr = $this->handleStrTab($teststr);
-		for($i = 1 ; $i < count($s); $i++) {
-			for($j = 0; $j < count($reArr['old']); $j++) {
-				if(stristr($s[$i],$reArr['old'][$j]) != '') {
+		for($i = 1 ; $i < count($s); $i++) 
+			for($j = 0; $j < count($reArr['old']); $j++)
+				if(stristr($s[$i],$reArr['old'][$j]) != '') 
 					$s[$i] = str_replace($reArr['old'][$j],$reArr['new'][$j+1],$s[$i]);
-				}
-			}
-		}
+		
         return $this->division($s);
 	}
 
@@ -367,6 +374,28 @@ class Word2Json
 	 * 分割选择题选项
 	 */
 	public function setSelection(&$arr = []) {
+		// $titNam = '选择';
+		// $option = ['A','B','C','D'];
+		// for($a = 0; $a<count($arr);$a++) {
+		// 	$arr2 = &$arr['question_types'][$a];
+		// 	if(mb_strpos($arr2['name'],$titNam)!==false) {
+		// 		for ($i=0; $i < count($arr2['questions']); $i++) { 
+		// 			$str = $arr2['questions'][$i];
+		// 			$arr2['questions'][$i] = [];
+		// 			if(mb_strpos($str,$option[0] . '．')!==false) {
+		// 				$arr2['questions'][$i]['title'] = mb_substr($str,0,mb_strpos($str,$option[0] . '．'));
+		// 				$str =  mb_substr($str,mb_strpos($str,$option[0] . '．'));
+		// 			}
+		// 			for($j = 1; $j < count($option); $j++) {
+		// 				$arr2['questions'][$i]['options'][] =  mb_substr($str,0,mb_strpos($str,$option[$j] . '．'));
+		// 				$str =  mb_substr($str,mb_strpos($str,$option[$j] . '．'));
+		// 			}
+		// 			if($str !== "") $arr2['questions'][$i]['options'][] = $str;
+		// 		}
+		// 	}else return;
+		// }
+
+
 		$titNam = '选择';
 		$option = ['A','B','C','D'];
 		for($a = 0; $a<count($arr);$a++) {
@@ -378,10 +407,19 @@ class Word2Json
 					if(mb_strpos($str,$option[0] . '．')!==false) {
 						$arr2['questions'][$i]['title'] = mb_substr($str,0,mb_strpos($str,$option[0] . '．'));
 						$str =  mb_substr($str,mb_strpos($str,$option[0] . '．'));
+					}else if(mb_strpos($str,$option[0] . ' ．')!==false) {
+						$arr2['questions'][$i]['title'] = mb_substr($str,0,mb_strpos($str,$option[0] . ' ．'));
+						$str =  mb_substr($str,mb_strpos($str,$option[0] . ' ．'));
 					}
 					for($j = 1; $j < count($option); $j++) {
-						$arr2['questions'][$i]['options'][] =  mb_substr($str,0,mb_strpos($str,$option[$j] . '．'));
-						$str =  mb_substr($str,mb_strpos($str,$option[$j] . '．'));
+						if(mb_strpos($str,$option[$j] . '．')) {
+							$arr2['questions'][$i]['options'][] =  mb_substr($str,0,mb_strpos($str,$option[$j] . '．'));
+							$str =  mb_substr($str,mb_strpos($str,$option[$j] . '．'));
+						}
+						else if(mb_strpos($str,$option[$j] . ' ．')) {
+							$arr2['questions'][$i]['options'][] =  mb_substr($str,0,mb_strpos($str,$option[$j] . ' ．'));
+							$str =  mb_substr($str,mb_strpos($str,$option[$j] . ' ．'));
+						}
 					}
 					if($str !== "") $arr2['questions'][$i]['options'][] = $str;
 				}
@@ -428,5 +466,15 @@ class Word2Json
 
 	public function echos($a,$b,$c) {
 		echo $a.'#'.$b.'#'.$c;
+	}
+
+
+	/**
+	 * 生成填空题下滑线
+	 */
+	public function test($ints) {
+		$a = '';
+		for($i = 0; $i < $ints; $i++) $a .= '_';
+		return $a;
 	}
 }
