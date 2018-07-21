@@ -7,7 +7,6 @@ function __autoload($className) {
 }
 
 
-
 $rt = new Word2Json();
 
 $fileName = __DIR__.DS.'b'.DS.'test.docx';
@@ -156,11 +155,22 @@ class Word2Json
 									$t .= $this->test($underlineLength);
 								}
 								
+								if($paragraph->name == 'w:numPr' 
+								&& (mb_strpos($paragraph->readOuterXml(), 'w:ilvl') > -1) 
+								&& (mb_strpos($paragraph->readOuterXml(), 'w:numId') > -1) ) {
+									if(($lastVal = mb_substr($paragraph->readOuterXml(), mb_strripos($paragraph->readOuterXml(), 'w:val') + 7, 1)) 
+									&& is_numeric($lastVal) 
+									&& is_numeric($firstVal = mb_substr($paragraph->readOuterXml(), mb_strpos($paragraph->readOuterXml(), 'w:val') + 7, 1))) {
+										$t .= '(1)';
+									}
+								}
 
-
+				
+								
 								if($ts == '' && $paragraph->name != 'w:drawing') continue;
 								if($paragraph->name === 'w:drawing') {
 									(strstr($ts,'…封…') != false || strstr($ts,'…线…') != false) ? $t .= '' : $t .= $this->analysisDrawing($paragraph);
+									// (strstr($ts,'…封…') != false || strstr($ts,'…线…') != false) ? $t .= '' : $t .= '<img>';
 								}
 								if((strstr($t,$ts) == false) || (strstr($cache_t[count($cache_t)-1],$ts) ==false)){
 									if(strstr($cache_t[count($cache_t)-1],$ts) === '0') continue;
@@ -312,6 +322,7 @@ class Word2Json
 	}
 
     public function division ($s=[]) {
+		// var_dump($s);die;
 		$res = [];
 		$res['title'] = mb_substr($s[0],0,mb_strpos($s[0],'考试')+2);
         $start = mb_strpos($s[0],'级');
@@ -366,6 +377,7 @@ class Word2Json
             	$res['question_types'][$i]['questions'][] = $str;
 		}
 		$this->setSelection($res);
+		// var_dump($res);die;
 		return $res;
 	}
 	
@@ -374,28 +386,6 @@ class Word2Json
 	 * 分割选择题选项
 	 */
 	public function setSelection(&$arr = []) {
-		// $titNam = '选择';
-		// $option = ['A','B','C','D'];
-		// for($a = 0; $a<count($arr);$a++) {
-		// 	$arr2 = &$arr['question_types'][$a];
-		// 	if(mb_strpos($arr2['name'],$titNam)!==false) {
-		// 		for ($i=0; $i < count($arr2['questions']); $i++) { 
-		// 			$str = $arr2['questions'][$i];
-		// 			$arr2['questions'][$i] = [];
-		// 			if(mb_strpos($str,$option[0] . '．')!==false) {
-		// 				$arr2['questions'][$i]['title'] = mb_substr($str,0,mb_strpos($str,$option[0] . '．'));
-		// 				$str =  mb_substr($str,mb_strpos($str,$option[0] . '．'));
-		// 			}
-		// 			for($j = 1; $j < count($option); $j++) {
-		// 				$arr2['questions'][$i]['options'][] =  mb_substr($str,0,mb_strpos($str,$option[$j] . '．'));
-		// 				$str =  mb_substr($str,mb_strpos($str,$option[$j] . '．'));
-		// 			}
-		// 			if($str !== "") $arr2['questions'][$i]['options'][] = $str;
-		// 		}
-		// 	}else return;
-		// }
-
-
 		$titNam = '选择';
 		$option = ['A','B','C','D'];
 		for($a = 0; $a<count($arr);$a++) {
@@ -427,6 +417,21 @@ class Word2Json
 		}
 	}
 
+
+	/**
+	 * 检查三级子标题
+	 */
+	public function checkSubtitle() {
+
+	}
+
+
+
+
+
+	/**
+	 * 拼接成表格
+	 */
 	public function handleStrTab($str = '') {
 		$x = '';
 		$arr = explode('&!',$str);
@@ -464,6 +469,10 @@ class Word2Json
 	}
 
 
+
+	/**
+	 * test echo 
+	 */
 	public function echos($a,$b,$c) {
 		echo $a.'#'.$b.'#'.$c;
 	}
