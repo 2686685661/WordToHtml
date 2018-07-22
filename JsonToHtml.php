@@ -10,6 +10,8 @@ class JsonToHtml
     public function __construct($val) {
         $this->json = is_null(json_decode($val)) ? json_decode(json_encode($val)) : $this->$val;
         if(is_object($this->json)) $this->json2html($this->json);
+
+      
         
     }
     
@@ -99,7 +101,15 @@ class JsonToHtml
         $this->html .= '<div class="Brief">';
         $this->html .= '<h2>'.$value->title.'</h2>';
         for($i = 0; $i < count($value->questions); $i++) {
-            $this->html .= '<p>'.$value->questions[$i].'</p>';
+            if(is_string($value->questions[$i]))
+                $this->html .= '<p>'.$value->questions[$i].'</p>';
+            else if(is_object($value->questions[$i])) {
+                $this->html .= '<div><p>'.$value->questions[$i]->secondsTitle.'</p>';
+                foreach ($value->questions[$i]->subtitle as $key => $item) {
+                    $this->html .= '<p>'.$item.'</p>';
+                }
+                $this->html .= '</div>';
+            }
         }
         $this->html .= '</div>';
 
@@ -109,7 +119,15 @@ class JsonToHtml
         $this->html .= '<div class="Calculation">';
         $this->html .= '<h2>'.$value->title.'</h2>';
         for($i = 0; $i < count($value->questions); $i++) {
-            $this->html .= '<div>'.$value->questions[$i].'</div>';
+            if(is_string($value->questions[$i]))
+                $this->html .= '<div>'.$value->questions[$i].'</div>';
+            else if(is_object($value->questions[$i])) {
+                $this->html .= '<div><p>'.$value->questions[$i]->secondsTitle.'</p>';
+                foreach ($value->questions[$i]->subtitle as $key => $item) {
+                    $this->html .= '<p>'.$item.'</p>';
+                }
+                $this->html .= '</div>';
+            }
         }
         $this->html .= '</div>';
     }

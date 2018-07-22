@@ -134,10 +134,11 @@ class Word2Json
 		$tcFlag = 0;
 		$teststr = '';
 		$testoldstr = '';
+
 		while ($reader->read()) {
 			$paragraph = new XMLReader;
 			$p = $reader->readOuterXML();
-			// var_dump($p);die;
+			var_dump($p);die;
 			if ($reader->nodeType == XMLREADER::ELEMENT && $reader->name === 'w:p') {
 				$paragraph->xml($p);
 				while ($paragraph->read()) {
@@ -148,6 +149,7 @@ class Word2Json
 						while($paragraph->read()) {
 							if($paragraph->nodeType == XMLReader::ELEMENT) { 
 								$ts = str_replace(array("\r\n", "\r", "\n"," "),'',$this->checkFormating($paragraph));
+
 								if(($paragraph->name === 'w:r') 
 								&& (mb_strpos($paragraph->readOuterXml(),'<w:u w:val="single"/>') >-1) 
 								&& (mb_strpos($paragraph->readOuterXml(),'<w:t xml:space="preserve">') > -1)) {
@@ -155,13 +157,13 @@ class Word2Json
 									$t .= $this->test($underlineLength);
 								}
 								
-								if($paragraph->name == 'w:numPr' 
+								if(($paragraph->name === 'w:numPr') 
 								&& (mb_strpos($paragraph->readOuterXml(), 'w:ilvl') > -1) 
-								&& (mb_strpos($paragraph->readOuterXml(), 'w:numId') > -1) ) {
+								&& (mb_strpos($paragraph->readOuterXml(), 'w:numId') > -1)) {
 									if(($lastVal = mb_substr($paragraph->readOuterXml(), mb_strripos($paragraph->readOuterXml(), 'w:val') + 7, 1)) 
 									&& is_numeric($lastVal) 
 									&& is_numeric($firstVal = mb_substr($paragraph->readOuterXml(), mb_strpos($paragraph->readOuterXml(), 'w:val') + 7, 1))) {
-										$t .= '(1)';
+										$t .= '&(';
 									}
 								}
 
@@ -377,6 +379,7 @@ class Word2Json
             	$res['question_types'][$i]['questions'][] = $str;
 		}
 		$this->setSelection($res);
+		$this->checkSubtitle($res['question_types']);
 		// var_dump($res);die;
 		return $res;
 	}
@@ -419,13 +422,45 @@ class Word2Json
 
 
 	/**
-	 * 检查三级子标题
+	 * 检查题中是否有序列号标识，若有，替换成序列号
 	 */
-	public function checkSubtitle() {
-
+	public function checkSubtitle(&$topicBankArr = []) {
+		for ($i = 2; $i < count($topicBankArr); $i++) { 
+			$arr = &$topicBankArr[$i]['questions'];
+			for ($j = 0; $j < count($arr); $j++) {
+				if((mb_strpos($arr[$j], '&(') > -1) || (mb_strpos($arr[$j], '&（') > -1)) {
+					$str = '';
+					$sequence = 0;
+					(count(explode('&(',$arr[$j])) > 1) ? ($arr2 = explode('&(',$arr[$j])) : ($arr2 = explode('&（',$arr[$j]));
+					foreach ($arr2 as $key => $value) 
+					($key == 0) ? ($str .= $value) : ($str .= ('(' . ++$sequence . ')' . $value));
+					$arr[$j] = $str;
+				}
+				$arr[$j] = $this->divisionSubtitle($arr[$j]);
+			}
+		}
 	}
 
-
+	/**
+	 * 分割子标题
+	 */
+	public function divisionSubtitle($str = '') {
+		$tit = [1 ,2, 3, 4, 5, 6];
+		for ($i = 0; $i < count($tit); $i++) { 
+			if($i == 0 && !(substr_count($str, '(' . $tit[$i] . ')') || substr_count($str, '（' . $tit[$i] . '）')))
+				return $str;
+			
+			if(!substr_count($str, '(' . $tit[$i] . ')') && !substr_count($str, '（' . $tit[$i] . '）')) {
+				$arr['subtitle'][$i -1] = $str;
+				break;
+			}else {
+				$subStr = mb_substr($str, 0, (mb_strpos($str, '(' . $tit[$i] . ')') | mb_strpos($str, '（' . $tit[$i] . '）')));
+				substr_count($str, '(' . $tit[$i] . ')') ? ($str = stristr($str, '(' . $tit[$i] . ')')) : ($str = stristr($str, '（' . $tit[$i] . '）'));
+				($i == 0) ? ($arr['secondsTitle'] = $subStr) : ($arr['subtitle'][$i -1] = $subStr);
+			}
+		}
+		return $arr;
+	}
 
 
 
