@@ -1,15 +1,15 @@
 <?php
 
-define('DS') || define('DS',DIRECTORY_SEPARATOR);
+defined('DS') || define('DS',DIRECTORY_SEPARATOR);
 
 function __autoload($className) {
-	require_once __DIR__.DS.$className.'.php';
+	require_once 'E:\PHP\test'.DS.$className.'.php';
 }
 
 
 $rt = new Word2Json();
 
-$fileName = __DIR__.DS.'b'.DS.'test1.docx';
+$fileName = 'E:\PHP\test'.DS.'b'.DS.'test.docx';
 $res = $rt->readDocument($fileName);
 $json2html = new JsonToHtml($res);
 
@@ -174,8 +174,8 @@ class Word2Json
 								
 								if($ts == '' && $paragraph->name != 'w:drawing') continue;
 								if($paragraph->name === 'w:drawing') {
-									// (strstr($ts,'…封…') != false || strstr($ts,'…线…') != false) ? $t .= '' : $t .= $this->analysisDrawing($paragraph);
-									(strstr($ts,'…封…') != false || strstr($ts,'…线…') != false) ? $t .= '' : $t .= '<img>';
+									(strstr($ts,'…封…') != false || strstr($ts,'…线…') != false) ? $t .= '' : $t .= $this->analysisDrawing($paragraph);
+									// (strstr($ts,'…封…') != false || strstr($ts,'…线…') != false) ? $t .= '' : $t .= '<img>';
 								}
 								if((strstr($t,$ts) == false) || (strstr($cache_t[count($cache_t)-1],$ts) ==false)){
 									if(strstr($cache_t[count($cache_t)-1],$ts) === '0') continue;
@@ -308,7 +308,7 @@ class Word2Json
 	private function checkImageFormating($rIdIndex, $distArr = [], $slideSizeArr = []) {
 
 		$imgname = 'word/media/image'.($rIdIndex-8);
-		$zipfileName =  __DIR__.DS.'b'.DS.'test.docx';
+		$zipfileName = 'E:\PHP\test'.DS.'b'.DS.'test.docx';
 		$zip=zip_open($zipfileName);
 		while($zip_entry = zip_read($zip)) {//读依次读取包中的文件
 			$file_name=zip_entry_name($zip_entry);//获取zip中的文件名
@@ -319,7 +319,7 @@ class Word2Json
 					$ext = pathinfo(zip_entry_name ($zip_entry),PATHINFO_EXTENSION);//获取图片文件扩展名
 					$content = zip_entry_read($zip_entry,zip_entry_filesize($zip_entry));//读取文件二进制数据
 					// return sprintf('<img src="data:image/%s;base64,%s" style="'.'width:'.$slideSizeArr['cx'].';height:'.$slideSizeArr['cy'].';">', $ext, base64_encode($content));//利用base64_encode函数转换读取到的二进制数据并输入输出到页面中
-					return sprintf('<img src="data:image/%s;base64,%s" style="width:%s;height:%s;margin-top:%s;margin-bottom:%s;margin-left:%s;margin-right:%s">', $ext, base64_encode($content), ...array_values($slideSizeArr), ...array_values($distArr));//利用base64_encode函数转换读取到的二进制数据并输入输出到页面中
+					return sprintf('<img src="data:image/%s;base64,%s" style="vertical-align:middle;width:%s;height:%s;margin-top:%s;margin-bottom:%s;margin-left:%s;margin-right:%s";>', $ext, base64_encode($content), ...array_values($slideSizeArr), ...array_values($distArr));//利用base64_encode函数转换读取到的二进制数据并输入输出到页面中
 				}
 				zip_entry_close($zip_entry); //关闭zip中打开的项目 
 			}
@@ -382,7 +382,7 @@ class Word2Json
 			if($str !== "") 
             	$res['question_types'][$i]['questions'][] = $str;
 		}
-		var_dump($res);die;
+		// var_dump($res);die;
 		$this->setSelection($res);
 
 		$this->checkSubtitle($res['question_types']);

@@ -16,8 +16,11 @@ class JsonToHtml
     }
     
     private function json2html(&$obj) {
+        // var_dump($obj);die;
         $this->returnHeader();
-        $this->html .= '<div>'.$obj->title.'</div>';
+        $this->html .= sprintf('<div style="%s">%s</div>', $obj->title->style, $obj->title->value);
+        // $this->html .= '<div>'.$obj->title->value.'</div>';
+
         $this->returnTable(count($obj->question_types));
         $this->returnContent($obj->question_types);
         echo $this->html;
@@ -63,11 +66,12 @@ class JsonToHtml
     private function returnContent($questions) {
         $this->html .= '<div class="content">';
         foreach($questions as $key => $value) {
-            if(strstr($value->name,'选择')) $this->returnChoice($value);
-            elseif(strstr($value->name,'判断')) $this->returnJudge($value);
-            elseif(strstr($value->name,'简答') || strstr($value->name,'解答')) $this->returnBrief($value);
-            elseif(strstr($value->name,'计算') || strstr($value->name,'证明')) $this->returnCalculation($value);
-            elseif(strstr($value->name,'填空')) $this->returnPack($value);
+            // var_dump($value);die;
+            if(strstr($value->name->value,'选择')) $this->returnChoice($value);
+            elseif(strstr($value->name->value,'判断')) $this->returnJudge($value);
+            elseif(strstr($value->name->value,'简答') || strstr($value->name->value,'解答')) $this->returnBrief($value);
+            elseif(strstr($value->name->value,'计算') || strstr($value->name->value,'证明')) $this->returnCalculation($value);
+            elseif(strstr($value->name->value,'填空')) $this->returnPack($value);
 
         }
         $this->html .= '</div>';
@@ -76,12 +80,13 @@ class JsonToHtml
 
     private function returnChoice($value) {
         $this->html .= '<div class="Choice">';
-        $this->html .= '<h2>'.$value->title.'</h2>';
+        // $this->html .= '<h2>'.$value->title->value.'</h2>';
+        $this->html .= sprintf('<p style="%s">%s</p>',$value->title->style,$value->title->value);
         for($i = 0; $i <count($value->questions); $i++) {
             $this->html .= '<div class="'.Choice.$i.'">';
-            $this->html .= '<p>'.$value->questions[$i]->title.'</p>';
+            $this->html .= sprintf('<p style="%s">%s</p>',$value->questions[$i]->title->style,$value->questions[$i]->title->value); 
             for($j = 0; $j < count($value->questions[$i]->options);$j++) {
-                $this->html .= '<p>'.$value->questions[$i]->options[$j].'</p>';
+                $this->html .= sprintf('<p style="%s">%s</p>',$value->questions[$i]->options[$j]->style,$value->questions[$i]->options[$j]->value);  
             }
             $this->html .= '</div>';
         }
@@ -90,23 +95,23 @@ class JsonToHtml
 
     private function returnJudge($value) {
         $this->html .= '<div class="Judge">';
-        $this->html .= '<h2>'.$value->title.'</h2>';
+        $this->html .= sprintf('<p style="%s">%s</p>',$value->title->style,$value->title->value);
         for($i = 0; $i < count($value->questions); $i++) {
-            $this->html .= '<p>'.$value->questions[$i].'</p>';
+            $this->html .= sprintf('<p style="%s">%s</p>',$value->questions[$i]->style,$value->questions[$i]->value);   
         }
         $this->html .= '</div>';
     }
 
     private function returnBrief($value) {
         $this->html .= '<div class="Brief">';
-        $this->html .= '<h2>'.$value->title.'</h2>';
+        $this->html .= sprintf('<p style="%s">%s</p>',$value->title->style,$value->title->value);
         for($i = 0; $i < count($value->questions); $i++) {
-            if(is_string($value->questions[$i]))
-                $this->html .= '<p>'.$value->questions[$i].'</p>';
-            else if(is_object($value->questions[$i])) {
-                $this->html .= '<div><p>'.$value->questions[$i]->secondsTitle.'</p>';
-                foreach ($value->questions[$i]->subtitle as $key => $item) {
-                    $this->html .= '<p>'.$item.'</p>';
+            if(is_string($value->questions[$i]->value))
+                $this->html .= sprintf('<p style="%s">%s</p>',$value->questions[$i]->style,$value->questions[$i]->value);  
+            else if(is_object($value->questions[$i]->value)) {
+                $this->html .= sprintf('<div><p style="%s">%s</p>',$value->questions[$i]->value->secondsTitle->style,$value->questions[$i]->value->secondsTitle->value);  
+                foreach ($value->questions[$i]->value->subtitle as $key => $item) {
+                    $this->html .= sprintf('<p style="%s">%s</p>',$item->style,$item->value); 
                 }
                 $this->html .= '</div>';
             }
@@ -116,15 +121,16 @@ class JsonToHtml
     }
 
     private function returnCalculation($value) {
+        // var_dump($value);die;
         $this->html .= '<div class="Calculation">';
-        $this->html .= '<h2>'.$value->title.'</h2>';
+        $this->html .= sprintf('<p style="%s">%s</p>', $value->title->style, $value->title->value); 
         for($i = 0; $i < count($value->questions); $i++) {
-            if(is_string($value->questions[$i]))
-                $this->html .= '<div>'.$value->questions[$i].'</div>';
-            else if(is_object($value->questions[$i])) {
-                $this->html .= '<div><p>'.$value->questions[$i]->secondsTitle.'</p>';
-                foreach ($value->questions[$i]->subtitle as $key => $item) {
-                    $this->html .= '<p>'.$item.'</p>';
+            if(is_string($value->questions[$i]->value))
+                $this->html .= sprintf('<div style="%s">%s</div>', $value->questions[$i]->style, $value->questions[$i]->value);
+            else if(is_object($value->questions[$i]->value)) {
+                $this->html .= sprintf('<div><p style="%s">%s</p>', $value->questions[$i]->value->secondsTitle->style, $value->questions[$i]->value->secondsTitle->value);
+                foreach ($value->questions[$i]->value->subtitle as $key => $item) {
+                    $this->html .= sprintf('<p style="%s">%s</p>', $item->style, $item->value);
                 }
                 $this->html .= '</div>';
             }
@@ -134,9 +140,9 @@ class JsonToHtml
 
     private function returnPack($value) {
         $this->html .= '<div class="Pack">';
-        $this->html .= '<h2>'.$value->title.'</h2>';
+        $this->html .= sprintf('<p style="%s">%s</p>',$value->title->style,$value->title->value);
         for($i = 0; $i < count($value->questions); $i++) {
-            $this->html .= '<p>'.$value->questions[$i].'</p>';
+            $this->html .= sprintf('<p style="%s">%s</p>', $value->questions[$i]->style, $value->questions[$i]->value); 
         }
         $this->html .= '</div>';
     }

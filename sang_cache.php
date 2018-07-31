@@ -1,6 +1,6 @@
 <?php
 
-define('DS') || define('DS',DIRECTORY_SEPARATOR);
+defined('DS') || define('DS',DIRECTORY_SEPARATOR);
 
 function __autoload($className) {
 	require_once __DIR__.DS.$className.'.php';
@@ -11,7 +11,7 @@ $rt = new Word2Json();
 
 $fileName = __DIR__.DS.'b'.DS.'test.docx';
 $res = $rt->readDocument($fileName);
-// $json2html = new JsonToHtml($res);
+$json2html = new JsonToHtml($res);
 
 class Word2Json
 {
@@ -70,7 +70,7 @@ class Word2Json
 
 
 	private function checkFormating(&$xml) {	
-		return $xml->expand()->textContent;
+		return $xml->expand()->textContent; 
 	}
 	
 	private function getListFormating(&$xml) {	
@@ -143,6 +143,8 @@ class Word2Json
 				$paragraph->xml($p);
 				while ($paragraph->read()) {
 					if ($paragraph->nodeType == XMLREADER::ELEMENT && $paragraph->name === 'w:p') {
+						// var_dump($paragraph);die;
+						$tp = str_replace(array("\r\n", "\r", "\n"," "),'',$this->checkFormating($paragraph));
 						$t ='';
 						$cache_t = [];
 						$i = 0;
@@ -157,7 +159,6 @@ class Word2Json
 									$underlineLength = mb_strpos($paragraph->readOuterXml(),'</w:t>') - (mb_strpos($paragraph->readOuterXml(),'<w:t xml:space="preserve">') + strlen('<w:t xml:space="preserve">'));
 									$t .= $this->test($underlineLength);
 								}
-								
 
 								//检测是否为编号
 								if(($paragraph->name === 'w:numPr') 
@@ -170,7 +171,11 @@ class Word2Json
 									}
 								}
 
-				
+								// if($paragraph->name === 'w:pPr' && $tp != '') {
+								// 	$style = $this->getParagraphStyle($paragraph);
+								// }
+
+
 								
 								if($ts == '' && $paragraph->name != 'w:drawing') continue;
 								if($paragraph->name === 'w:drawing') {
@@ -184,7 +189,10 @@ class Word2Json
 								$cache_t[$i++] = $ts;
 							}
 						}
+						// var_dump($style);
+						
 						if($t!=""){
+							// $t = $t.$style;
 							if(mb_substr($t,0,2, 'utf-8')==$bFlag[$flag]){
 								$flag++;
 								$sFlag = 2;
@@ -206,8 +214,12 @@ class Word2Json
 							else {
 								if($t!='得分'&&$t!='评卷人')
 									$s[$flag] .= $t . "*";
+								// if(mb_strpos($t,'得分')==false && mb_strpos($t,'评卷人')==false)
+								// 	$s[$flag] .= $t . "*";
 							}
 							$front = $t;
+							// var_dump($t);
+
 						}
 					}
 					else if($paragraph->nodeType == XMLREADER::ELEMENT && $paragraph->name === 'w:t') { //list
@@ -225,7 +237,7 @@ class Word2Json
 				$paragraph->xml($p);
 				$tr_cache = '';
 				$tr_int_boo=0;
-				$teststr .= '&T<table border="1">';
+				$teststr .= '&T<table border="1" style="font-size:11pt;border-collapse:collapse;">';
 				while($paragraph->read()) {
 					if ($paragraph->nodeType == XMLREADER::ELEMENT && $paragraph->name === 'w:tr') {
 						$t = str_replace(array("\r\n", "\r", "\n"," "),'',$this->checkFormating($paragraph));
@@ -274,10 +286,51 @@ class Word2Json
 	}
 
 
+	private function getParagraphStyle($styPa) {
+		$style = '<style>';
+		while ($styPa->read()) 
+			if($styPa->nodeType == XMLREADER::ELEMENT)
+				switch ($styPa->name) 
+				{
+					case 'w:jc':
+						if(mb_strpos($style,'text-align') == false)
+							$styPa->getAttribute('w:val') == '' ?   : $style .= 'text-align:' . $styPa->getAttribute('w:val').';';
+						break;
+					case 'w:spacing':
+						if(mb_strpos($style,'line-height') == false) {
+							$line_height = round(intval($styPa->getAttribute('w:line')) / 240, 1);
+							$style .= 'line-height:' . $line_height . ';';
+						}
+						break;
+					case 'w:szCs':
+					case 'w:sz':
+						if(mb_strpos($style,'font-size') == false) {
+							$font_size = intval($styPa->getAttribute('w:val')) / 2;
+							$style .= 'font-size:' . $font_size . 'pt;';
+						}
+						break;
+					case 'w:textAlignment':
+						if(mb_strpos($style,'vertical-align') == false)
+							$styPa->getAttribute('w:val') != 'center' ? : $style .= 'vertical-align:middle;';
+						break;
+					// case 'w:rPr':
+					// 	var_dump('this is cuti');
+					// 	break;
+					default:
+						$style .= '</style>';
+						if(mb_substr($style,7) !== '</style>') return $style;
+						else return '';
+						break;
+				}
+			
+		
+		
+	}
+
 	/**
 	 * 获取图片索引值
 	 */
-	private function analysisDrawing(&$drawingXml) {
+	private function analysisDrawing($drawingXml) {
 		$rIdIndex = '';
 		$distArr = [];
 		$slideSizeArr = [];
@@ -319,7 +372,7 @@ class Word2Json
 					$ext = pathinfo(zip_entry_name ($zip_entry),PATHINFO_EXTENSION);//获取图片文件扩展名
 					$content = zip_entry_read($zip_entry,zip_entry_filesize($zip_entry));//读取文件二进制数据
 					// return sprintf('<img src="data:image/%s;base64,%s" style="'.'width:'.$slideSizeArr['cx'].';height:'.$slideSizeArr['cy'].';">', $ext, base64_encode($content));//利用base64_encode函数转换读取到的二进制数据并输入输出到页面中
-					return sprintf('<img src="data:image/%s;base64,%s" style="width:%s;height:%s;margin-top:%s;margin-bottom:%s;margin-left:%s;margin-right:%s">', $ext, base64_encode($content), ...array_values($slideSizeArr), ...array_values($distArr));//利用base64_encode函数转换读取到的二进制数据并输入输出到页面中
+					return sprintf('<img src="data:image/%s;base64,%s" style="vertical-align:middle;width:%s;height:%s;margin-top:%s;margin-bottom:%s;margin-left:%s;margin-right:%s";>', $ext, base64_encode($content), ...array_values($slideSizeArr), ...array_values($distArr));//利用base64_encode函数转换读取到的二进制数据并输入输出到页面中
 				}
 				zip_entry_close($zip_entry); //关闭zip中打开的项目 
 			}
@@ -385,8 +438,44 @@ class Word2Json
 		$this->setSelection($res);
 		
 		$this->checkSubtitle($res['question_types']);
-		var_dump($res);die;
+		$this->changeStyle($res);
+		// var_dump($res);die;
 		return $res;
+	}
+
+	private function changeStyle(&$res) {
+		foreach ($res as $key => $item) {
+			switch ($key) {
+				case 'title':
+					$res['title']['style'] = 'font-size:16pt;font-weight:bold;text-align:center;';
+					break;
+				case 'question_types':
+					for ($i = 0; $i < count($res['question_types']); $i++) { 
+						$que = &$res['question_types'][$i];
+						$que['title']['style'] = 'font-size:11pt;font-weight:bold;';
+						for ($j = 0; $j < count($que['questions']); $j++) {
+							$quval = &$que['questions'][$j];
+							if(isset($quval['value']) && is_string($quval['value'])) 
+								$quval['style'] = 'font-size:11pt;';
+							else if(isset($quval['title']) && isset($quval['options'])) {
+								$quval['title']['style'] = 'font-size:11pt;';
+								for ($x=0; $x < count($quval['options']); $x++)
+									$quval['options'][$x]['style'] = 'font-size:11pt;';
+							}
+							else if(isset($quval['value']) && is_array($quval['value']) && isset($quval['value']['secondsTitle'])) {
+								// var_dump($quval);die;
+								$quval['value']['secondsTitle']['style'] = 'font-size:11pt;';
+								for ($z = 0; $z < count($quval['value']['subtitle']); $z++)
+									$quval['value']['subtitle'][$z]['style'] = 'font-size:11pt;';
+							}
+						}
+
+					}
+					break;
+				default:
+					break;
+			}
+		}
 	}
 	
 
