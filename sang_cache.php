@@ -11,7 +11,7 @@ $rt = new Word2Json();
 
 $fileName = __DIR__.DS.'b'.DS.'test.docx';
 $res = $rt->readDocument($fileName);
-$json2html = new JsonToHtml($res);
+// $json2html = new JsonToHtml($res);
 
 class Word2Json
 {
@@ -150,6 +150,7 @@ class Word2Json
 							if($paragraph->nodeType == XMLReader::ELEMENT) { 
 								$ts = str_replace(array("\r\n", "\r", "\n"," "),'',$this->checkFormating($paragraph));
 
+								//判断是否为空格
 								if(($paragraph->name === 'w:r') 
 								&& (mb_strpos($paragraph->readOuterXml(),'<w:u w:val="single"/>') >-1) 
 								&& (mb_strpos($paragraph->readOuterXml(),'<w:t xml:space="preserve">') > -1)) {
@@ -157,6 +158,8 @@ class Word2Json
 									$t .= $this->test($underlineLength);
 								}
 								
+
+								//检测是否为编号
 								if(($paragraph->name === 'w:numPr') 
 								&& (mb_strpos($paragraph->readOuterXml(), 'w:ilvl') > -1) 
 								&& (mb_strpos($paragraph->readOuterXml(), 'w:numId') > -1)) {
@@ -266,6 +269,7 @@ class Word2Json
 				if(stristr($s[$i],$reArr['old'][$j]) != '') 
 					$s[$i] = str_replace($reArr['old'][$j],$reArr['new'][$j+1],$s[$i]);
 		
+
         return $this->division($s);
 	}
 
@@ -326,10 +330,10 @@ class Word2Json
     public function division ($s=[]) {
 		// var_dump($s);die;
 		$res = [];
-		$res['title'] = mb_substr($s[0],0,mb_strpos($s[0],'考试')+2);
+		$res['title']['value'] = mb_substr($s[0],0,mb_strpos($s[0],'考试')+2);
         $start = mb_strpos($s[0],'级');
         $end = mb_strpos($s[0],'专业');
-        $res['course'] = mb_substr($s[0],$start+1,$end-$start-1);
+        $res['course']['value'] = mb_substr($s[0],$start+1,$end-$start-1);
         $res['question_types'] = [];
         for($i=0;$i<count($s)-1;$i++){
 			$res['question_types'][$i] = [];
@@ -344,8 +348,8 @@ class Word2Json
                 $qname = explode('(', $qname)[0];
             else if(mb_strpos($qname,'（')!==false)
                 $qname= explode('（', $qname)[0];
-            $res['question_types'][$i]['name'] = $qname;
-            $res['question_types'][$i]['title'] = $question[0];
+            $res['question_types'][$i]['name']['value'] = $qname;
+            $res['question_types'][$i]['title']['value'] = $question[0];
             $res['question_types'][$i]['questions'] = [];
 			$str = "";
             for($j=1;$j<count($question);$j++){
@@ -356,19 +360,19 @@ class Word2Json
                 if(mb_strpos($str,$flag . '．')!==false){
 					if(mb_substr($str,mb_strpos($str,$flag . '．')-1,1) == '．') {
 						$spl = mb_substr($str,0,mb_strpos($str,'．' . $flag . '．')).mb_substr($str,mb_strpos($str,'．'.$flag . '．'),mb_strpos($str,$flag . '．'));
-						$res['question_types'][$i]['questions'][] = $spl;
+						$res['question_types'][$i]['questions'][]['value'] = $spl;
 						$str = str_replace($spl,'',$str);
 					}else {
-						$res['question_types'][$i]['questions'][] = mb_substr($str,0,mb_strpos($str,$flag . '．'));
+						$res['question_types'][$i]['questions'][]['value'] = mb_substr($str,0,mb_strpos($str,$flag . '．'));
 						$str =  mb_substr($str,mb_strpos($str,$flag . '．'));
 					}
                 }else if(mb_strpos($str,$flag . '.')!==false){
 					if(mb_substr($str,mb_strpos($str,$flag . '.')-1,1) == '.') {
 						$spl = mb_substr($str,0,mb_strpos($str,'.' . $flag . '.')).mb_substr($str,mb_strpos($str,'.'.$flag . '.'),mb_strpos($str,$flag . '.'));
-						$res['question_types'][$i]['questions'][] = $spl;
+						$res['question_types'][$i]['questions'][]['value'] = $spl;
 						$str = str_replace($spl,'',$str);
 					}else {
-						$res['question_types'][$i]['questions'][] = mb_substr($str,0,mb_strpos($str,$flag . '.'));
+						$res['question_types'][$i]['questions'][]['value'] = mb_substr($str,0,mb_strpos($str,$flag . '.'));
 						$str =  mb_substr($str,mb_strpos($str,$flag . '.'));
 					}
                 }
@@ -376,11 +380,12 @@ class Word2Json
                 $flag++;
 			}
 			if($str !== "") 
-            	$res['question_types'][$i]['questions'][] = $str;
+            	$res['question_types'][$i]['questions'][]['value'] = $str;
 		}
 		$this->setSelection($res);
+		
 		$this->checkSubtitle($res['question_types']);
-		// var_dump($res);die;
+		var_dump($res);die;
 		return $res;
 	}
 	
@@ -393,28 +398,28 @@ class Word2Json
 		$option = ['A','B','C','D'];
 		for($a = 0; $a<count($arr);$a++) {
 			$arr2 = &$arr['question_types'][$a];
-			if(mb_strpos($arr2['name'],$titNam)!==false) {
+			if(mb_strpos($arr2['name']['value'],$titNam)!==false) {
 				for ($i=0; $i < count($arr2['questions']); $i++) { 
-					$str = $arr2['questions'][$i];
+					$str = $arr2['questions'][$i]['value'];
 					$arr2['questions'][$i] = [];
 					if(mb_strpos($str,$option[0] . '．')!==false) {
-						$arr2['questions'][$i]['title'] = mb_substr($str,0,mb_strpos($str,$option[0] . '．'));
+						$arr2['questions'][$i]['title']['value'] = mb_substr($str,0,mb_strpos($str,$option[0] . '．'));
 						$str =  mb_substr($str,mb_strpos($str,$option[0] . '．'));
 					}else if(mb_strpos($str,$option[0] . ' ．')!==false) {
-						$arr2['questions'][$i]['title'] = mb_substr($str,0,mb_strpos($str,$option[0] . ' ．'));
+						$arr2['questions'][$i]['title']['value'] = mb_substr($str,0,mb_strpos($str,$option[0] . ' ．'));
 						$str =  mb_substr($str,mb_strpos($str,$option[0] . ' ．'));
 					}
 					for($j = 1; $j < count($option); $j++) {
 						if(mb_strpos($str,$option[$j] . '．')) {
-							$arr2['questions'][$i]['options'][] =  mb_substr($str,0,mb_strpos($str,$option[$j] . '．'));
+							$arr2['questions'][$i]['options'][]['value'] =  mb_substr($str,0,mb_strpos($str,$option[$j] . '．'));
 							$str =  mb_substr($str,mb_strpos($str,$option[$j] . '．'));
 						}
 						else if(mb_strpos($str,$option[$j] . ' ．')) {
-							$arr2['questions'][$i]['options'][] =  mb_substr($str,0,mb_strpos($str,$option[$j] . ' ．'));
+							$arr2['questions'][$i]['options'][]['value'] =  mb_substr($str,0,mb_strpos($str,$option[$j] . ' ．'));
 							$str =  mb_substr($str,mb_strpos($str,$option[$j] . ' ．'));
 						}
 					}
-					if($str !== "") $arr2['questions'][$i]['options'][] = $str;
+					if($str !== "") $arr2['questions'][$i]['options'][]['value'] = $str;
 				}
 			}else return;
 		}
@@ -428,15 +433,15 @@ class Word2Json
 		for ($i = 2; $i < count($topicBankArr); $i++) { 
 			$arr = &$topicBankArr[$i]['questions'];
 			for ($j = 0; $j < count($arr); $j++) {
-				if((mb_strpos($arr[$j], '&(') > -1) || (mb_strpos($arr[$j], '&（') > -1)) {
+				if((mb_strpos($arr[$j]['value'], '&(') > -1) || (mb_strpos($arr[$j]['value'], '&（') > -1)) {
 					$str = '';
 					$sequence = 0;
-					(count(explode('&(',$arr[$j])) > 1) ? ($arr2 = explode('&(',$arr[$j])) : ($arr2 = explode('&（',$arr[$j]));
+					(count(explode('&(',$arr[$j]['value'])) > 1) ? ($arr2 = explode('&(',$arr[$j]['value'])) : ($arr2 = explode('&（',$arr[$j]['value']));
 					foreach ($arr2 as $key => $value) 
-					($key == 0) ? ($str .= $value) : ($str .= ('(' . ++$sequence . ')' . $value));
-					$arr[$j] = $str;
+						($key == 0) ? ($str .= $value) : ($str .= ('(' . ++$sequence . ')' . $value));
+					$arr[$j]['value'] = $str;
 				}
-				$arr[$j] = $this->divisionSubtitle($arr[$j]);
+				$arr[$j]['value'] = $this->divisionSubtitle($arr[$j]['value']);
 			}
 		}
 	}
@@ -451,12 +456,12 @@ class Word2Json
 				return $str;
 			
 			if(!substr_count($str, '(' . $tit[$i] . ')') && !substr_count($str, '（' . $tit[$i] . '）')) {
-				$arr['subtitle'][$i -1] = $str;
+				$arr['subtitle'][$i -1]['value'] = $str;
 				break;
 			}else {
 				$subStr = mb_substr($str, 0, (mb_strpos($str, '(' . $tit[$i] . ')') | mb_strpos($str, '（' . $tit[$i] . '）')));
 				substr_count($str, '(' . $tit[$i] . ')') ? ($str = stristr($str, '(' . $tit[$i] . ')')) : ($str = stristr($str, '（' . $tit[$i] . '）'));
-				($i == 0) ? ($arr['secondsTitle'] = $subStr) : ($arr['subtitle'][$i -1] = $subStr);
+				($i == 0) ? ($arr['secondsTitle']['value'] = $subStr) : ($arr['subtitle'][$i -1]['value'] = $subStr);
 			}
 		}
 		return $arr;

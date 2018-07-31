@@ -1,4 +1,148 @@
 {
+
+    "title_test":{
+        "value":"河南师范大学计算机与信息工程2017-2018学年度第一学期2015级计算机与技术专业期末考试",
+        "style":"font-size:10;margin-top:0pt;"
+    },
+    "score_test":{
+        "value":100,
+        "style":"font-size:10;margin-top:0pt;"
+    },
+    "term_test":{
+        "value":100,
+        "style":"font-size:10;margin-top:0pt;"
+    },
+    "question_types_test":[
+        {
+            "name":{
+                "value":"单项选择",
+                "style":"font-size:10;margin-top:0pt;"
+            },
+            "title":{
+                "value":"一、单项选择（每题1一分，共20分）",
+                "style":"font-size:10;margin-top:0pt;"
+            },
+            "questions":[
+                {
+                    "title":{
+                        "value":"1．下列哪一项描述了网络体系结构中的分层概念?()",
+                        "style":"font-size:10;margin-top:0pt;"
+                    },
+                    "options":[
+                        {
+                            "value":"A．保持网络灵活且易于修改",
+                            "style":"font-size:10;margin-top:0pt;"
+                        },
+                        {
+                            "value":"A．保持网络灵活且易于修改",
+                            "style":"font-size:10;margin-top:0pt;"
+                        },
+                        {
+                            "value":"A．保持网络灵活且易于修改",
+                            "style":"font-size:10;margin-top:0pt;"
+                        },
+                        {
+                            "value":"A．保持网络灵活且易于修改",
+                            "style":"font-size:10;margin-top:0pt;"
+                        }
+                    ]
+                },
+                {
+                    "title":{
+                        "value":"1．下列哪一项描述了网络体系结构中的分层概念?()",
+                        "style":"font-size:10;margin-top:0pt;"
+                    },
+                    "options":[
+                        {
+                            "value":"A．保持网络灵活且易于修改",
+                            "style":"font-size:10;margin-top:0pt;"
+                        },
+                        {
+                            "value":"A．保持网络灵活且易于修改",
+                            "style":"font-size:10;margin-top:0pt;"
+                        },
+                        {
+                            "value":"A．保持网络灵活且易于修改",
+                            "style":"font-size:10;margin-top:0pt;"
+                        },
+                        {
+                            "value":"A．保持网络灵活且易于修改",
+                            "style":"font-size:10;margin-top:0pt;"
+                        }
+                    ]
+                }
+            ]
+
+        },
+        {
+            "name":{
+                "value":"判断对错",
+                "style":"font-size:10;margin-top:0pt;"
+            },
+            "title":{
+                "value":"二、判断对错(每题1分，共15分)",
+                "style":"font-size:10;margin-top:0pt;"
+            },
+            "questions":[
+                {
+                    "value":"1．计算机网络是将地理位置不同且具有独立功能的多个计算机系统通过通信线路和通信设备相互连接在一起，通过网络操作系统及网络协议软件进行管理，以实现资源共享和相互通信的系统。()",
+                    "style":"font-size:10;margin-top:0pt;"
+                },
+                {
+                    "value":"1．计算机网络是将地理位置不同且具有独立功能的多个计算机系统通过通信线路和通信设备相互连接在一起，通过网络操作系统及网络协议软件进行管理，以实现资源共享和相互通信的系统。()",
+                    "style":"font-size:10;margin-top:0pt;"
+                }
+            ]
+        },
+        {
+            "name":{
+                "value":"解答题",
+                "style":"font-size:10;margin-top:0pt;"
+            },
+            "title":{
+                "value":"二、解答题(每题5分，共15分)",
+                "style":"font-size:10;margin-top:0pt;"
+            },
+            "questions":[
+                {
+                    "secondsTitle": {
+                        "value":"1.设集合A=a，b，c，试写其上的三个关系，使其分别具有下列性质。",
+                        "style":"font-size:10;margin-top:0pt;"
+                    },
+                    "subtitle":[
+                        {
+                            "value":"（1）（2分）R是对称的和反对称的。",
+                            "style":"font-size:10;margin-top:0pt;"
+                        },
+                        {
+                            "value":"（2）（2分）R不是对称的和反对称的。",
+                            "style":"font-size:10;margin-top:0pt;"
+                        },
+                        {
+                            "value":"（3）（1分）R是传递的。",
+                            "style":"font-size:10;margin-top:0pt;"
+                        }
+                    ]
+                },
+                {
+                    "secondsTitle": {
+                        "value":"1.设集合A=a，b，c，试写其上的三个关系，使其分别具有下列性质。",
+                        "style":"font-size:10;margin-top:0pt;"
+                    },
+                    "subtitle":[]
+                }
+            ]
+        }
+    ]
+
+}
+
+
+
+
+
+
+{
     "title":"河南师范大学计算机与信息工程2017-2018学年度第一学期2015级计算机与技术专业期末考试",
     "score":100,
     "course":"计算机科学与技术",
@@ -44,7 +188,4 @@
             ]
         }
     ]
-
-    //进行字符串拼接，然后在切割时候判断是否在同意题下main，然后进行递增替换成序列号
-    //规定表示序列号的符号是：&(
 }
