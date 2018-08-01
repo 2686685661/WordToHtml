@@ -138,7 +138,7 @@ class Word2Json
 		while ($reader->read()) {
 			$paragraph = new XMLReader;
 			$p = $reader->readOuterXML();
-			// var_dump($p);die;
+			var_dump($p);die;
 			if ($reader->nodeType == XMLREADER::ELEMENT && $reader->name === 'w:p') {
 				$paragraph->xml($p);
 				while ($paragraph->read()) {

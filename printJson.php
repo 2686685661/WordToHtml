@@ -1,7 +1,7 @@
 <?php
 require './sang_cache.php';
 $rt = new Word2Json();
-$fileName = __DIR__.DS.'b'.DS.'test.docx';
+$fileName = __DIR__.DS.'b'.DS.'test1.docx';
 $res = $rt->readDocument($fileName);
 
 echo '<pre>';
