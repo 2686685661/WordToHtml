@@ -2,6 +2,14 @@
 
 // require(__DIR__.DIRECTORY_SEPARATOR.'libs'.DIRECTORY_SEPARATOR.'Smarty.class.php');
 
+
+require './sang_cache.php';
+$rt = new Word2Json();
+$fileName = __DIR__.DS.'b'.DS.'test.docx';
+$res = $rt->readDocument($fileName);
+$json2html = new JsonToHtml($res);
+
+
 class JsonToHtml 
 {
 

@@ -7,11 +7,11 @@ function __autoload($className) {
 }
 
 
-$rt = new Word2Json();
+// $rt = new Word2Json();
 
-$fileName = __DIR__.DS.'b'.DS.'test.docx';
-$res = $rt->readDocument($fileName);
-$json2html = new JsonToHtml($res);
+// $fileName = __DIR__.DS.'b'.DS.'test.docx';
+// $res = $rt->readDocument($fileName);
+// $json2html = new JsonToHtml($res);
 
 class Word2Json
 {
