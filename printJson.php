@@ -3,6 +3,8 @@ require './sang_cache.php';
 $rt = new Word2Json();
 $fileName = __DIR__.DS.'b'.DS.'test.docx';
 $res = $rt->readDocument($fileName);
-var_dump($res);
+
+echo '<pre>';
+print_r(json_encode($res, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT)) ;
 
 ?>
