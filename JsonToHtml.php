@@ -3,11 +3,40 @@
 // require(__DIR__.DIRECTORY_SEPARATOR.'libs'.DIRECTORY_SEPARATOR.'Smarty.class.php');
 
 
+
 require './sang_cache.php';
+// var_dump( $_SERVER);die;
 $rt = new Word2Json();
-$fileName = __DIR__.DS.'b'.DS.'test1.docx';
+$fileName = __DIR__.DS.'b'.DS.getUrl();
 $res = $rt->readDocument($fileName);
 $json2html = new JsonToHtml($res);
+
+function getUrl() {
+    $root = $_SERVER['SCRIPT_NAME'];
+    $request = $_SERVER['REQUEST_URI'];
+    $URI = array();
+    $url = trim(str_replace($root, '', $request), '/');
+    if(empty($url)) {
+        var_dump('请添加路由参数');
+        return;
+    }
+    else {
+        $URI = explode('.', $url);
+        if(count($URI) < 2) {
+            $file = $URI[0] . '.docx';
+        }
+        else if($URI[1] !== 'docx') {
+            var_dump('文件格式不正确');
+            return;
+        }
+        else $file = $url;
+    }
+
+    return $file;
+
+
+
+}
 
 
 class JsonToHtml 
