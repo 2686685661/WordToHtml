@@ -5,7 +5,6 @@
 
 
 require './sang_cache.php';
-// var_dump( $_SERVER);die;
 $rt = new Word2Json();
 $fileName = __DIR__.DS.'b'.DS.getUrl();
 $res = $rt->readDocument($fileName);
@@ -18,7 +17,7 @@ function getUrl() {
     $url = trim(str_replace($root, '', $request), '/');
     if(empty($url)) {
         var_dump('请添加路由参数');
-        return;
+        die;
     }
     else {
         $URI = explode('.', $url);
@@ -27,15 +26,11 @@ function getUrl() {
         }
         else if($URI[1] !== 'docx') {
             var_dump('文件格式不正确');
-            return;
+            die;
         }
         else $file = $url;
     }
-
     return $file;
-
-
-
 }
 
 
