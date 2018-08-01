@@ -53,7 +53,7 @@ class JsonToHtml
         $this->html .= sprintf('<div style="%s">%s</div>', $obj->title->style, $obj->title->value);
         // $this->html .= '<div>'.$obj->title->value.'</div>';
 
-        $this->returnTable(count($obj->question_types));
+        $this->returnTable(count($obj->question_types), $obj->title->value);
         $this->returnContent($obj->question_types);
         echo $this->html;
         
@@ -73,9 +73,9 @@ class JsonToHtml
         <body>';
     }
 
-    private function returnTable($num) {
+    private function returnTable($num, $str) {
         $tblFlag = ['一','二','三','四','五','六','七','八','九','十'];
-        $this->html .= '<table border="1">';
+        $this->html .= sprintf('<div><table border="1" style="display:table;margin:0 auto;border-collapse:collapse;text-align:center;width:%s">', $this->getTitleWidth($str));
         for($i = 0; $i < 2; $i++) {
             $this->html .= '<tr>';
             for($j = 0; $j < $num; $j++) {
@@ -91,7 +91,20 @@ class JsonToHtml
                 }
             }
         }
-        $this->html .= '</table>';
+        $this->html .= '</table></div>';
+    }
+
+    private function getTitleWidth($str) {
+        $str = explode('<br>',$str)[0];
+        $len = mb_strlen($str,"utf-8");
+        
+        for($i = 0 ; $i < $len ; $i++) {
+            $a = mb_substr($str, 0, 1);
+            if(mb_detect_encoding($a) == 'UTF-8') $zh += 1;
+            $str = mb_substr($str, 1);
+        }
+        $pt_len = ($zh * 16) + ((($len-$zh) / 2) * 16); 
+        return $pt_len . 'pt';
     }
 
 

@@ -6,13 +6,6 @@ function __autoload($className) {
 	require_once __DIR__.DS.$className.'.php';
 }
 
-
-// $rt = new Word2Json();
-
-// $fileName = __DIR__.DS.'b'.DS.'test.docx';
-// $res = $rt->readDocument($fileName);
-// $json2html = new JsonToHtml($res);
-
 class Word2Json
 {
 	private $rels_xml;
@@ -206,7 +199,7 @@ class Word2Json
 								if(mb_strpos($t,'学年度')  !==  false||mb_strpos($t,'考试')  !==  false||mb_strpos($t,'学期')  !==  false||mb_strpos($t,'《')  !==  false||mb_strpos($t,'》')  !==  false){
 									if(mb_strpos($t,'…') !==  false){
 										$ex = explode('…',$t);
-										$s[$flag] .= $ex[count($ex)-1];
+										$s[$flag] .= $ex[count($ex)-1].'<br>';
 									}
 									else $s[$flag] .= $t . '*';
 								}
@@ -265,7 +258,7 @@ class Word2Json
 								$tr_int_boo = 1;
 							}
 							if($tr_int_boo == 1) {
-								$teststr .= "<th>" . $x . "</th>";
+								$teststr .= "<td>" . $x . "</td>";
 							}
 						}
 					}
@@ -381,7 +374,7 @@ class Word2Json
 	}
 
     public function division ($s=[]) {
-		// var_dump($s);die;
+		// die;
 		$res = [];
 		$res['title']['value'] = mb_substr($s[0],0,mb_strpos($s[0],'考试')+2);
         $start = mb_strpos($s[0],'级');
@@ -573,9 +566,9 @@ class Word2Json
 		$arr2Cache = $arr2 = explode('&T',$x);
 		for($i = 1; $i < count($arr2Cache); $i++) {
 			$str = '';
-			$r = explode('<th>',$arr2Cache[$i]);
+			$r = explode('<td>',$arr2Cache[$i]);
 			for($j = 0; $j < count($r); $j++) {
-				$st = stristr($r[$j],"</th>",true);
+				$st = stristr($r[$j],"</td>",true);
 				if($st != '') {
 					$str .= '*'.$st;
 				}
