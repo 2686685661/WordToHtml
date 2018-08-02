@@ -70,7 +70,7 @@ class JsonToHtml
             <meta http-equiv="X-UA-Compatible" content="ie=edge">
             <title>Document</title>
         </head>
-        <body>';
+        <body><div style="width:176mm;margin-left:auto;margin-right:auto;">';
     }
 
     private function returnTable($num, $str) {
@@ -119,7 +119,7 @@ class JsonToHtml
             elseif(strstr($value->name->value,'填空')) $this->returnPack($value);
 
         }
-        $this->html .= '</div>';
+        $this->html .= '</div></body></html>';
     }
 
 
